@@ -40,22 +40,41 @@ const AddSkillModal = ({ onClose, onSkillAdded }) => {
     setFormData({ ...formData, subtopics: newSubtopics });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      await skillService.createSkill(formData);
-      onSkillAdded();
-      onClose();
-    } catch (error) {
-      console.error('Error creating skill:', error);
-      setError(error.response?.data?.error || 'Error creating skill');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    
+    const cleanTopics = formData.subtopics
+      .filter(st => st.title.trim() !== "")
+      .map(st => ({
+        title: st.title.trim(),
+        description: st.description.trim()
+      }));
+
+    const payload = {
+      name: formData.name,
+      resource_type: formData.resource_type,
+      platform: formData.platform,
+      target_hours: formData.target_hours,
+      description: formData.description,
+      user_subtopics: cleanTopics    
+    };
+
+    await skillService.createSkill(payload);
+
+    onSkillAdded();
+    onClose();
+  } catch (error) {
+    console.error("Error creating skill:", error);
+    setError(error.response?.data?.error || "Error creating skill");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Modal show={true} onHide={onClose} size="lg" centered>
