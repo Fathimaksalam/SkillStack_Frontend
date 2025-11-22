@@ -4,7 +4,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-// 
+import Dashboard from './components/dashboard/Dashboard';
+import SkillsList from './components/skills/SkillsList';
+import SkillDetail from './components/skills/SkillDetail';
 import './App.css';
 
 function App() {
