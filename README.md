@@ -46,6 +46,7 @@ It follows a modular architecture with a **React.js frontend**, a **Flask backen
 ---
 
 # 📁 Project Structure
+
 SkillStack/
 ├── SkillStack_Backend/
 │ ├── controllers/
@@ -63,45 +64,18 @@ SkillStack/
 │ ├── index.js
 
 
----
-
-# 🧪 API Documentation
-
-### **🔐 Authentication**
-#### POST `/auth/register`
-Registers a new user.  
-Body:
-```json
-{
-  "name": "John",
-  "email": "john@gmail.com",
-  "password": "123456"
-}
-
 POST /auth/login
 
 Returns JWT on successful login.
-Body:
-
-{
-  "email": "john@gmail.com",
-  "password": "123456"
-}
 
 📚 Skills API
 POST /skills/add
 
 Add a new skill.
 
-{
-  "title": "React",
-  "category": "Frontend",
-  "description": "Component-based UI library"
-}
-
 GET /skills/list
 
-Get all skills of the logged-in user.
+Fetch all skills of the logged-in user.
 
 GET /skills/<id>
 
@@ -114,63 +88,28 @@ Delete a skill.
 📊 Dashboard API
 GET /dashboard/summary
 
-Returns:
-
-{
-  "total_skills": 12,
-  "categories": {
-    "Frontend": 5,
-    "Backend": 4,
-    "Database": 3
-  }
-}
-
 ⚙️ Setup Steps
 Backend Setup (Flask)
 1. Navigate to backend folder
 cd SkillStack_Backend
-
 2. Create virtual environment
 python -m venv venv
-
-
-Activate:
-Windows:
-
+3. Activate environment
 venv\Scripts\activate
-
-
-Mac/Linux:
-
-source venv/bin/activate
-
-3. Install backend dependencies
+4. Install backend dependencies
 pip install -r requirements.txt
-
-4. Run backend
+5. Run backend
 python app.py
-
-
-Backend runs at:
-
-http://127.0.0.1:5000/
 
 Frontend Setup (React)
 1. Navigate to frontend folder
 cd skillstack_frontend
-
 2. Install dependencies
 npm install
-
 3. Start React app
 npm start
 
 
-Frontend runs at:
-
-http://localhost:3000/
-
 🚧 Future Enhancements
 
-SkillStack will be improved with features like skill progress charts, subtopics progress tracking, certificate uploads, notifications, cloud database migration using PostgreSQL/MongoDB, advanced analytics for deeper insights, and a mobile application built using React Native.
-
+SkillStack will be enhanced with features like skill progress charts, subtopics progress tracking, certificate uploads, notifications, cloud database migration using PostgreSQL/MongoDB, advanced analytics for deeper insights, and a mobile application built using React Native.
