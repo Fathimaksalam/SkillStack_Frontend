@@ -250,7 +250,7 @@ const SkillDetail = () => {
               <p className="mb-1"><strong>Target Hours:</strong> {target_hours}h</p>
               <p className="mb-1"><strong>Learned:</strong> {learned_hours}h</p>
               <p className="mb-1"><strong>Progress:</strong> {skill.progress ?? 0}%</p>
-              {skill.rating && <p className="mb-1"><strong>Rating:</strong> {"★".repeat(skill.rating)}</p>}
+              {skill.rating && <p className="mb-1"><strong>Difficulty:</strong> {"★".repeat(skill.rating)}</p>}
               {skill.course_notes && <p className="small text-muted">{skill.course_notes}</p>}
               <div className="mt-3">
                 <Button variant="primary" onClick={() => navigate("/skills")}>Back to Skills</Button>
@@ -287,7 +287,7 @@ const SkillDetail = () => {
           <Modal.Title>Course Completed — Feedback</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Congrats! You completed all topics for this course. Would you like to leave a rating and notes?</p>
+          <p>Congrats! You completed all topics for this course. Would you like to say how difficult the course is? </p>
           <Form>
             <Form.Group className="mb-3">
               <div>

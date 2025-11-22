@@ -93,7 +93,7 @@ const Home = () => {
                   <i className="bi bi-arrow-right ms-2"></i>
                 </Button>
                 <Button 
-                  variant="outline-primary" 
+                  variant="primary" 
                   size="lg"
                   className="home-cta-btn"
                   onClick={() => scrollToSection('home-features')}
@@ -299,7 +299,7 @@ const Home = () => {
                     <i className="bi bi-geo-alt-fill"></i>
                   </div>
                   <Card.Title>Location</Card.Title>
-                  <Card.Text>Global Community</Card.Text>
+                  <Card.Text>Kochi</Card.Text>
                 </Card.Body>
               </Card>
             </Col>

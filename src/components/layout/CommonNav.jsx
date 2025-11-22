@@ -13,7 +13,7 @@ const CommonNav = () => {
     const handleLogout = () => {
         logout();
         setMenuOpen(false);
-        navigate("/login");
+        navigate("/");
     };
 
     const closeMenu = () => setMenuOpen(false);

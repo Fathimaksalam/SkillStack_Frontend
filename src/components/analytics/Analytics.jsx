@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Alert, Badge } from 'react-bootstrap';
-import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
   PointElement,
   ArcElement,
   Title,
@@ -19,7 +18,6 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
   PointElement,
   ArcElement,
   Title,
@@ -46,227 +44,191 @@ const Analytics = () => {
     }
   };
 
-  const calculateStreak = () => {
-    // Mock streak calculation
-    return {
-      current: 5,
-      longest: 12,
-      lastActive: '2024-01-15'
-    };
-  };
-
-  const getWeeklyComparison = () => {
-    const currentWeekHours = 15.5;
-    const lastWeekHours = 12.2;
-    const difference = currentWeekHours - lastWeekHours;
-    const percentage = ((difference / lastWeekHours) * 100).toFixed(1);
-    
-    return {
-      currentWeek: currentWeekHours,
-      lastWeek: lastWeekHours,
-      difference: difference,
-      percentage: percentage,
-      isImprovement: difference > 0
-    };
-  };
-
-  const weeklyComparison = getWeeklyComparison();
-  const streakData = calculateStreak();
-
-  // Chart data for weekly learning hours
-  const weeklyChartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Current Week',
-        data: [2.5, 3.2, 1.8, 2.7, 4.1, 1.2, 0],
-        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-        borderColor: 'rgba(102, 126, 234, 1)',
-        borderWidth: 2,
-      },
-      {
-        label: 'Last Week',
-        data: [1.8, 2.5, 2.1, 3.0, 2.2, 0.6, 0],
-        backgroundColor: 'rgba(118, 75, 162, 0.6)',
-        borderColor: 'rgba(118, 75, 162, 1)',
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  // Chart data for skill distribution
-  const skillDistributionData = {
-    labels: analyticsData ? Object.keys(analyticsData.category_breakdown) : [],
-    datasets: [
-      {
-        data: analyticsData ? Object.values(analyticsData.category_breakdown) : [],
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          '#9966FF',
-          '#FF9F40',
-        ],
-        borderWidth: 2,
-        borderColor: '#fff',
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-    },
-  };
-
   if (loading) {
     return (
-      <Container className="my-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Loading analytics...</p>
-        </div>
+      <Container className="my-5 text-center">
+        <div className="spinner-border text-primary"></div>
+        <p className="mt-3">Loading analytics...</p>
       </Container>
     );
   }
 
+  if (!analyticsData) {
+    return (
+      <Container className="my-5">
+        <Alert variant="danger">Unable to load analytics</Alert>
+      </Container>
+    );
+  }
+
+  const skills = analyticsData.skills_progress || [];
+
+  
+  const expectedData = skills.map((s) => s.target_hours || 0);
+  const actualData = skills.map((s) => s.learned_hours || 0);
+  const skillLabels = skills.map((s) => s.name);
+
+  const dynamicHeight = Math.max(skills.length * 55, 250); // auto height
+
+  const expectedVsActualData = {
+    labels: skillLabels,
+    datasets: [
+      {
+        label: 'Expected Hours',
+        data: expectedData,
+        backgroundColor: '#9bbcf8',
+      },
+      {
+        label: 'Actual Hours',
+        data: actualData,
+        backgroundColor: '#7f80ff',
+      },
+    ],
+  };
+
+  const expectedVsActualOptions = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        ticks: { beginAtZero: true },
+      },
+    },
+    plugins: {
+      legend: { position: 'top' },
+    },
+  };
+
+  
+  const categoryData = {
+    labels: Object.keys(analyticsData.category_breakdown),
+    datasets: [
+      {
+        data: Object.values(analyticsData.category_breakdown),
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#7ED957', '#9966FF', '#FF9F40'],
+        borderColor: '#fff',
+        borderWidth: 2,
+      },
+    ],
+  };
+
   return (
     <Container className="my-4">
+      {/* HEADER */}
       <Row className="mb-4">
         <Col>
           <h1>Learning Analytics</h1>
-          <p className="text-muted">Track your progress and optimize your learning journey</p>
+          <p className="text-muted">Track your learning journey</p>
         </Col>
       </Row>
 
-      {/* Weekly Comparison Alert */}
-      <Row className="mb-4">
-        <Col>
-          <Alert variant={weeklyComparison.isImprovement ? 'success' : 'warning'}>
-            <Alert.Heading>
-              {weeklyComparison.isImprovement ? '🎉 Great Progress!' : '📊 Weekly Overview'}
-            </Alert.Heading>
-            <p>
-              This week you've learned for <strong>{weeklyComparison.currentWeek} hours</strong>
-              {weeklyComparison.isImprovement ? (
-                <> - that's <strong>{weeklyComparison.percentage}% more</strong> than last week! Keep it up! 🚀</>
-              ) : (
-                <> - similar to last week's {weeklyComparison.lastWeek} hours. You can do better! 💪</>
-              )}
-            </p>
-          </Alert>
-        </Col>
-      </Row>
-
+      {/* TOP STATS */}
       <Row className="g-4 mb-4">
-        {/* Streak Card */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
+          <Card className="h-100 shadow-sm">
             <Card.Body className="text-center">
-              <div className="display-4 text-primary mb-2">🔥</div>
-              <Card.Title>Learning Streak</Card.Title>
-              <div className="display-4 text-warning mb-2">{streakData.current}</div>
-              <p className="text-muted">days in a row</p>
-              <Badge bg="secondary">Longest: {streakData.longest} days</Badge>
-              {streakData.current >= 7 && (
-                <Alert variant="success" className="mt-3 mb-0">
-                  <small>🔥 Fire streak! You're on fire this week!</small>
-                </Alert>
-              )}
+              <div className="display-4 mb-2">⏱</div>
+              <h5>Total Learning Hours</h5>
+              <h2>{analyticsData.stats.total_learning_hours}h</h2>
+              <p className="text-muted">All-time tracked</p>
             </Card.Body>
           </Card>
         </Col>
 
-        {/* Total Hours Card */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
+          <Card className="h-100 shadow-sm">
             <Card.Body className="text-center">
-              <div className="display-4 text-info mb-2">⏱️</div>
-              <Card.Title>Total Learning Time</Card.Title>
-              <div className="display-4 text-info mb-2">
-                {analyticsData?.stats.total_learning_hours || 0}
+              <div className="display-4 mb-2">📘</div>
+              <h5>Skills Completed</h5>
+              <h2>
+                {analyticsData.stats.completed_skills}/{analyticsData.stats.total_skills}
+              </h2>
+              <div className="progress mt-2" style={{ height: '8px' }}>
+                <div
+                  className="progress-bar bg-success"
+                  style={{ width: `${analyticsData.stats.completion_rate}%` }}
+                />
               </div>
-              <p className="text-muted">hours invested</p>
-              <Badge bg="primary">This Week: {weeklyComparison.currentWeek}h</Badge>
             </Card.Body>
           </Card>
         </Col>
 
-        {/* Skills Progress Card */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
+          <Card className="h-100 shadow-sm">
             <Card.Body className="text-center">
-              <div className="display-4 text-success mb-2">📚</div>
-              <Card.Title>Skills Progress</Card.Title>
-              <div className="display-4 text-success mb-2">
-                {analyticsData?.stats.completed_skills || 0}/{analyticsData?.stats.total_skills || 0}
-              </div>
-              <p className="text-muted">skills completed</p>
-              <Badge bg="success">
-                {analyticsData?.stats.completion_rate || 0}% Completion Rate
-              </Badge>
+              <div className="display-4 mb-2">📅</div>
+              <h5>Active Learning Days</h5>
+              <h2>{Object.keys(analyticsData.calendar_data).length}</h2>
+              <p className="text-muted">Last 30 days</p>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      <Row className="g-4">
-        {/* Weekly Learning Chart */}
+      {/* CHARTS ROW */}
+      <Row className="g-4 mb-4">
         <Col lg={8}>
-          <Card className="border-0 shadow-sm">
+          <Card className="shadow-sm h-100">
             <Card.Body>
-              <Card.Title>Weekly Learning Hours</Card.Title>
-              <p className="text-muted">Compare your learning hours with last week</p>
-              <Bar data={weeklyChartData} options={chartOptions} height={300} />
+              <h5>Expected vs Actual Hours</h5>
+              <p className="text-muted">How your learning compares to your plan</p>
+
+              <div style={{ height: dynamicHeight, overflowY: 'auto' }}>
+                <Bar data={expectedVsActualData} options={expectedVsActualOptions} />
+              </div>
             </Card.Body>
           </Card>
         </Col>
 
-        {/* Skill Distribution Chart */}
         <Col lg={4}>
-          <Card className="border-0 shadow-sm">
+          <Card className="shadow-sm h-100">
             <Card.Body>
-              <Card.Title>Skill Categories</Card.Title>
-              <p className="text-muted">Distribution of your learning focus</p>
-              <Doughnut data={skillDistributionData} options={chartOptions} height={300} />
+              <h5>Skill Categories</h5>
+              <p className="text-muted">Your distribution of skills</p>
+
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: '320px',
+                }}
+              >
+                <Doughnut data={categoryData} />
+              </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Progress Timeline */}
-      <Row className="mt-4">
+      {/* TIMELINE */}
+      <Row>
         <Col>
-          <Card className="border-0 shadow-sm">
+          <Card className="shadow-sm">
             <Card.Body>
-              <Card.Title>Learning Progress Timeline</Card.Title>
-              <p className="text-muted">Your recent learning activities</p>
-              {analyticsData?.recent_activities.map((activity, index) => (
-                <div key={activity.id} className="d-flex align-items-center mb-3 p-3 border rounded">
-                  <div className="flex-shrink-0">
-                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                         style={{width: '40px', height: '40px'}}>
-                      {index + 1}
-                    </div>
+              <h5>Recent Learning Activities</h5>
+
+              {analyticsData.recent_activities.map((a, i) => (
+                <div key={a.id} className="d-flex p-3 border rounded mb-2">
+                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                    style={{ width: '45px', height: '45px' }}
+                  >
+                    {i + 1}
                   </div>
-                  <div className="flex-grow-1 ms-3">
-                    <h6 className="mb-1">{activity.skill_name}</h6>
+
+                  <div className="ms-3 flex-grow-1">
+                    <h6 className="mb-1">{a.skill_name}</h6>
                     <p className="mb-1 text-muted">
-                      {activity.subtopic_title && `${activity.subtopic_title} • `}
-                      {activity.duration_minutes} minutes
+                      {a.subtopic_title && `${a.subtopic_title} • `}
+                      {a.duration_minutes} minutes
                     </p>
                     <small className="text-muted">
-                      {new Date(activity.session_date).toLocaleDateString()}
+                      {new Date(a.session_date).toLocaleDateString()}
                     </small>
                   </div>
+
                   <Badge bg="light" text="dark">
-                    {activity.duration_minutes}m
+                    {a.duration_minutes}m
                   </Badge>
                 </div>
               ))}
