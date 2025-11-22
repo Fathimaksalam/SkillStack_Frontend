@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Badge, Alert } from 'react-bootstrap';
 import { skillService } from '../../services/skillService';
-import { ArrowLeft, CheckCircle, Circle, PlayCircle, Clock, BookOpen } from 'lucide-react';
-import '../../styles/SkillDetail.css';
 
 const SkillDetail = () => {
   const { id } = useParams();
@@ -39,180 +38,213 @@ const SkillDetail = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusVariant = (status) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle size={20} className="status-icon completed" />;
-      case 'in-progress':
-        return <PlayCircle size={20} className="status-icon in-progress" />;
-      default:
-        return <Circle size={20} className="status-icon to-learn" />;
+      case 'completed': return 'success';
+      case 'in-progress': return 'primary';
+      default: return 'secondary';
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed': return '#10b981';
-      case 'in-progress': return '#f59e0b';
-      default: return '#6b7280';
+      case 'completed': return 'bi-check-circle-fill text-success';
+      case 'in-progress': return 'bi-play-circle-fill text-primary';
+      default: return 'bi-circle text-secondary';
     }
   };
 
   if (loading) {
     return (
-      <div className="skill-detail-loading">
-        <div className="loading-spinner large"></div>
-        <p>Loading skill details...</p>
-      </div>
+      <Container className="my-5">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading skill details...</p>
+        </div>
+      </Container>
     );
   }
 
   if (!skill) {
     return (
-      <div className="skill-detail-error">
-        <h2>Skill not found</h2>
-        <button onClick={() => navigate('/skills')} className="btn-primary">
-          Back to Skills
-        </button>
-      </div>
+      <Container className="my-5">
+        <Alert variant="danger">
+          <Alert.Heading>Skill Not Found</Alert.Heading>
+          <p>The skill you're looking for doesn't exist.</p>
+          <Button variant="primary" onClick={() => navigate('/skills')}>
+            Back to Skills
+          </Button>
+        </Alert>
+      </Container>
     );
   }
 
   return (
-    <div className="skill-detail">
-      <div className="detail-header">
-        <button onClick={() => navigate('/skills')} className="back-btn">
-          <ArrowLeft size={20} />
-          Back to Skills
-        </button>
-        
-        <div className="skill-info">
-          <div className="skill-meta">
-            <h1>{skill.name}</h1>
-            <div className="meta-tags">
-              <span className="platform-tag">{skill.platform}</span>
-              <span className="type-tag">{skill.resource_type}</span>
-              <span className="category-tag">{skill.category}</span>
-              <span 
-                className="status-tag"
-                style={{ backgroundColor: getStatusColor(skill.status) }}
-              >
-                {skill.status}
-              </span>
-            </div>
-            {skill.description && (
-              <p className="skill-description">{skill.description}</p>
-            )}
-          </div>
-          
-          <div className="skill-stats">
-            <div className="stat">
-              <BookOpen size={20} />
-              <div>
-                <span className="stat-value">{skill.progress}%</span>
-                <span className="stat-label">Progress</span>
-              </div>
-            </div>
-            <div className="stat">
-              <CheckCircle size={20} />
-              <div>
-                <span className="stat-value">
-                  {skill.subtopics.filter(st => st.status === 'completed').length}/
-                  {skill.subtopics.length}
-                </span>
-                <span className="stat-label">Completed</span>
-              </div>
-            </div>
-            {skill.target_hours > 0 && (
-              <div className="stat">
-                <Clock size={20} />
-                <div>
-                  <span className="stat-value">{skill.target_hours}h</span>
-                  <span className="stat-label">Target</span>
-                </div>
-              </div>
-            )}
+    <Container className="my-4">
+      {/* Header */}
+      <div className="d-flex align-items-center mb-4">
+        <Button 
+          variant="outline-secondary" 
+          onClick={() => navigate('/skills')}
+          className="me-3"
+        >
+          <i className="bi bi-arrow-left me-2"></i>
+          Back
+        </Button>
+        <div>
+          <h1 className="h2 mb-1">{skill.name}</h1>
+          <div className="d-flex gap-2">
+            <Badge bg="primary">{skill.platform}</Badge>
+            <Badge bg="info">{skill.resource_type}</Badge>
+            <Badge bg="light" text="dark">{skill.category}</Badge>
+            <Badge bg={getStatusVariant(skill.status)}>
+              {skill.status}
+            </Badge>
           </div>
         </div>
       </div>
 
-      <div className="progress-section">
-        <div className="progress-bar-large">
-          <div 
-            className="progress-fill" 
-            style={{ width: `${skill.progress}%` }}
-          ></div>
-        </div>
-        <span className="progress-text">{skill.progress}% Complete</span>
-      </div>
+      {skill.description && (
+        <Card className="border-0 bg-light mb-4">
+          <Card.Body>
+            <p className="mb-0">{skill.description}</p>
+          </Card.Body>
+        </Card>
+      )}
 
-      <div className="subtopics-section">
-        <h2>Learning Path</h2>
-        <div className="subtopics-list">
+      <Row className="g-4 mb-4">
+        <Col md={4}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body>
+              <div className="text-primary mb-2">
+                <i className="bi bi-graph-up display-6"></i>
+              </div>
+              <Card.Title className="h3">{skill.progress}%</Card.Title>
+              <Card.Text className="text-muted">Progress</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body>
+              <div className="text-success mb-2">
+                <i className="bi bi-check-circle display-6"></i>
+              </div>
+              <Card.Title className="h3">
+                {skill.subtopics.filter(st => st.status === 'completed').length}/
+                {skill.subtopics.length}
+              </Card.Title>
+              <Card.Text className="text-muted">Topics Completed</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="border-0 shadow-sm text-center">
+            <Card.Body>
+              <div className="text-warning mb-2">
+                <i className="bi bi-clock display-6"></i>
+              </div>
+              <Card.Title className="h3">{skill.target_hours || 0}h</Card.Title>
+              <Card.Text className="text-muted">Target Hours</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Progress Bar */}
+      <Card className="border-0 shadow-sm mb-4">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="fw-bold">Overall Progress</span>
+            <span className="text-primary fw-bold">{skill.progress}% Complete</span>
+          </div>
+          <div className="progress" style={{height: '12px'}}>
+            <div 
+              className="progress-bar bg-primary" 
+              style={{width: `${skill.progress}%`}}
+            ></div>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Learning Path */}
+      <Card className="border-0 shadow-sm">
+        <Card.Header className="bg-white border-0">
+          <h5 className="mb-0">
+            <i className="bi bi-list-task me-2"></i>
+            Learning Path
+          </h5>
+        </Card.Header>
+        <Card.Body>
           {skill.subtopics.map((subtopic, index) => (
-            <div key={subtopic.id} className="subtopic-card">
-              <div className="subtopic-header">
-                <div className="subtopic-info">
-                  <span className="subtopic-number">{(index + 1).toString().padStart(2, '0')}</span>
-                  <div>
-                    <h3>{subtopic.title}</h3>
+            <div key={subtopic.id} className="border rounded p-3 mb-3">
+              <div className="d-flex justify-content-between align-items-start">
+                <div className="d-flex align-items-start flex-grow-1">
+                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                       style={{width: '40px', height: '40px', flexShrink: 0}}>
+                    {index + 1}
+                  </div>
+                  <div className="flex-grow-1">
+                    <h6 className="mb-1">{subtopic.title}</h6>
                     {subtopic.description && (
-                      <p className="subtopic-description">{subtopic.description}</p>
+                      <p className="text-muted mb-2 small">{subtopic.description}</p>
                     )}
                     {subtopic.hours_spent > 0 && (
-                      <div className="time-spent">
-                        <Clock size={14} />
+                      <div className="d-flex align-items-center text-muted small">
+                        <i className="bi bi-clock me-1"></i>
                         <span>{subtopic.hours_spent.toFixed(1)} hours spent</span>
                       </div>
                     )}
                   </div>
                 </div>
                 
-                <div className="subtopic-actions">
-                  <span 
-                    className="status-badge"
-                    style={{ backgroundColor: getStatusColor(subtopic.status) }}
-                  >
-                    {getStatusIcon(subtopic.status)}
+                <div className="d-flex flex-column align-items-end gap-2">
+                  <Badge bg={getStatusVariant(subtopic.status)} className="d-flex align-items-center">
+                    <i className={`bi ${getStatusIcon(subtopic.status)} me-1`}></i>
                     {subtopic.status.replace('-', ' ')}
-                  </span>
+                  </Badge>
                   
-                  <div className="action-buttons">
+                  <div className="d-flex gap-1">
                     {subtopic.status !== 'to-learn' && (
-                      <button
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
                         onClick={() => updateSubtopicStatus(subtopic.id, 'to-learn')}
                         disabled={updating}
-                        className="btn-outline"
                       >
                         Reset
-                      </button>
+                      </Button>
                     )}
                     {subtopic.status !== 'in-progress' && (
-                      <button
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
                         onClick={() => updateSubtopicStatus(subtopic.id, 'in-progress')}
                         disabled={updating}
-                        className="btn-outline"
                       >
                         Start
-                      </button>
+                      </Button>
                     )}
                     {subtopic.status !== 'completed' && (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => updateSubtopicStatus(subtopic.id, 'completed')}
                         disabled={updating}
-                        className="btn-primary"
                       >
                         Complete
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </div>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

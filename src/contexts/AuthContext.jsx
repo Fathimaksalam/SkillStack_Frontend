@@ -4,7 +4,11 @@ import api from '../services/api';
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -16,11 +20,15 @@ export const AuthProvider = ({ children }) => {
     const userData = localStorage.getItem('user');
     
     if (token && userData) {
-      setUser(JSON.parse(userData));
-      setLoading(false);
-    } else {
-      setLoading(false);
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
+    setLoading(false);
   }, []);
 
   const login = async (username, password) => {
@@ -49,19 +57,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         username,
         email,
         password
       });
-
-      const { access_token, user_id, username: userUsername } = response.data;
-      
-      const userData = { id: user_id, username: userUsername };
-      
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
       
       return { success: true };
     } catch (error) {

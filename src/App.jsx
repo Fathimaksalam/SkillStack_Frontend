@@ -1,21 +1,33 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Navbar from './components/common/Navbar';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import Dashboard from './components/dashboard/Dashboard';
-import SkillsList from './components/skills/SkillsList';
-import SkillDetail from './components/skills/SkillDetail';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Pages
+import Home from "./components/home/Home";
+import Login from "./components/auth/Login";
+import Register from "./components/auth/Register";
+import Dashboard from "./components/dashboard/Dashboard";
+import SkillsList from "./components/skills/SkillsList";
+import SkillDetail from "./components/skills/SkillDetail";
+import Analytics from "./components/analytics/Analytics";
+
+// Common Navigation Bar (new)
+import CommonNav from "./components/layout/CommonNav";
+
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="app">
-          <AppContent />
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
@@ -26,32 +38,43 @@ function AppContent() {
 
   return (
     <>
-      {user && <Navbar />}
+      {/* Show CommonNav only when logged in */}
+      {user && <CommonNav />}
+
       <Routes>
-        <Route 
-          path="/login" 
-          element={!user ? <Login /> : <Navigate to="/dashboard" />} 
+        {/* Home — standalone landing page */}
+        <Route path="/" element={<Home />} />
+
+        {/* Public Auth Routes */}
+        <Route
+          path="/login"
+          element={!user ? <Login /> : <Navigate to="/dashboard" />}
         />
-        <Route 
-          path="/register" 
-          element={!user ? <Register /> : <Navigate to="/dashboard" />} 
+        <Route
+          path="/register"
+          element={!user ? <Register /> : <Navigate to="/dashboard" />}
         />
-        <Route 
-          path="/dashboard" 
-          element={user ? <Dashboard /> : <Navigate to="/login" />} 
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard /> : <Navigate to="/login" />}
         />
-        <Route 
-          path="/skills" 
-          element={user ? <SkillsList /> : <Navigate to="/login" />} 
+        <Route
+          path="/skills"
+          element={user ? <SkillsList /> : <Navigate to="/login" />}
         />
-        <Route 
-          path="/skills/:id" 
-          element={user ? <SkillDetail /> : <Navigate to="/login" />} 
+        <Route
+          path="/skills/:id"
+          element={user ? <SkillDetail /> : <Navigate to="/login" />}
         />
-        <Route 
-          path="/" 
-          element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+        <Route
+          path="/analytics"
+          element={user ? <Analytics /> : <Navigate to="/login" />}
         />
+
+        {/* Unknowns → Home */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
   );

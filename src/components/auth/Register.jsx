@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
-import { UserPlus, User, Mail, Lock } from 'lucide-react';
-import '../../styles/Auth.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -43,7 +42,7 @@ const Register = () => {
     const result = await register(formData.username, formData.email, formData.password);
     
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/login');
     } else {
       setError(result.error);
     }
@@ -52,89 +51,113 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <UserPlus size={32} className="auth-icon" />
-          <h2>Create Account</h2>
-          <p>Join SkillStack and start tracking your learning journey</p>
-        </div>
-        
-        {error && <div className="error-message">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label>
-              <User size={16} />
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              placeholder="Choose a username"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>
-              <Mail size={16} />
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="Enter your email"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>
-              <Lock size={16} />
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="Create a password (min. 6 characters)"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>
-              <Lock size={16} />
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              placeholder="Confirm your password"
-            />
-          </div>
-          
-          <button type="submit" disabled={loading} className="auth-button">
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-        
-        <div className="auth-footer">
-          <p>
-            Already have an account? <Link to="/login" className="auth-link">Sign in here</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    <Container fluid className="bg-light min-vh-100 d-flex align-items-center">
+      <Row className="w-100 justify-content-center">
+        <Col md={6} lg={4}>
+          <Card className="border-0 shadow">
+            <Card.Body className="p-5">
+              <div className="text-center mb-4">
+                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style={{width: '60px', height: '60px'}}>
+                  <i className="bi bi-person-plus fs-3"></i>
+                </div>
+                <h2 className="h4">Create Account</h2>
+                <p className="text-muted">Join SkillStack and start tracking your learning journey</p>
+              </div>
+              
+              {error && <Alert variant="danger">{error}</Alert>}
+              
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <i className="bi bi-person me-2"></i>
+                    Username
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                    placeholder="Choose a username"
+                  />
+                </Form.Group>
+                
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <i className="bi bi-envelope me-2"></i>
+                    Email
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter your email"
+                  />
+                </Form.Group>
+                
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <i className="bi bi-lock me-2"></i>
+                    Password
+                  </Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="Create a password (min. 6 characters)"
+                  />
+                </Form.Group>
+                
+                <Form.Group className="mb-4">
+                  <Form.Label>
+                    <i className="bi bi-lock-fill me-2"></i>
+                    Confirm Password
+                  </Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Confirm your password"
+                  />
+                </Form.Group>
+                
+                <Button 
+                  variant="primary" 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-100 py-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Creating Account...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
+                </Button>
+              </Form>
+              
+              <div className="text-center mt-4">
+                <p className="text-muted">
+                  Already have an account?{' '}
+                  <Link to="/login" className="text-decoration-none">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

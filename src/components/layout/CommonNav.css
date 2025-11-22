@@ -1,0 +1,144 @@
+:root {
+  --primary: #6a85b6;
+  --primary-dark: #47618a;
+  --primary-light: #c7d4ea;
+  --bg-soft: #eef3fb;
+  --text-dark: #2d3748;
+  --text-light: #4a5568;
+}
+
+/* MAIN NAV */
+.common-nav {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.9rem 2rem;
+
+  /* Soft gradient for navbar */
+  background: linear-gradient(to right, #eaf0fb, #d8e1f3);
+
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  z-index: 2000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- LEFT ---------- */
+.nav-left {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.6rem;
+}
+
+.nav-logo-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  
+  background: linear-gradient(135deg, #6a85b6, #bac8e0);
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.nav-logo-text {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+/* ---------- CENTER LINKS ---------- */
+.nav-center {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-center a {
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 1.05rem;
+  text-decoration: none;
+  transition: 0.25s;
+}
+
+.nav-center a:hover {
+  color: var(--primary-dark);
+}
+
+/* ---------- RIGHT PROFILE ---------- */
+.nav-right {
+  position: relative;
+}
+
+.profile-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+
+  background: white;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #c4cce0;
+  transition: 0.2s ease;
+}
+
+.profile-box:hover {
+  border-color: var(--primary-dark);
+}
+
+.profile-icon {
+  font-size: 1.25rem;
+  color: var(--primary-dark);
+}
+
+.username {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.caret {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* ---------- DROPDOWN FIX ---------- */
+.profile-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+
+  background: white;
+  border-radius: 10px;
+  min-width: 160px;
+
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e6f0;
+
+  z-index: 9999;
+  padding: 5px 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.dropdown-item:hover {
+  background: var(--primary-light);
+}

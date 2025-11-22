@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
 import { skillService } from '../../services/skillService';
 import AddSkillModal from './AddSkillModal';
-import { Plus, BookOpen, Clock, Target } from 'lucide-react';
-import '../../styles/SkillsList.css'
 
 const SkillsList = () => {
   const [skills, setSkills] = useState([]);
@@ -25,128 +24,139 @@ const SkillsList = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusVariant = (status) => {
     switch (status) {
-      case 'completed': return '#10b981';
-      case 'in-progress': return '#f59e0b';
-      default: return '#6b7280';
+      case 'completed': return 'success';
+      case 'in-progress': return 'warning';
+      default: return 'secondary';
     }
   };
 
-  const getProgressColor = (progress) => {
-    if (progress >= 80) return '#10b981';
-    if (progress >= 50) return '#f59e0b';
-    return '#ef4444';
+  const getProgressVariant = (progress) => {
+    if (progress >= 80) return 'success';
+    if (progress >= 50) return 'warning';
+    return 'danger';
   };
 
   if (loading) {
     return (
-      <div className="skills-loading">
-        <div className="loading-spinner large"></div>
-        <p>Loading your skills...</p>
-      </div>
+      <Container className="my-5">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading your skills...</p>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <div className="skills-page">
-      <div className="page-header">
-        <div className="header-content">
-          <h1>My Skills</h1>
-          <p>Manage and track all your learning skills</p>
+    <Container className="my-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 className="h2 mb-1">My Skills</h1>
+          <p className="text-muted mb-0">Manage and track all your learning skills</p>
         </div>
-        <button 
-          className="btn-primary"
+        <Button 
+          variant="primary"
           onClick={() => setShowAddSkill(true)}
         >
-          <Plus size={20} />
+          <i className="bi bi-plus-circle me-2"></i>
           Add New Skill
-        </button>
+        </Button>
       </div>
 
-      <div className="skills-grid">
+      <Row className="g-4">
         {skills.map(skill => (
-          <div key={skill.id} className="skill-card">
-            <div className="skill-header">
-              <div className="skill-title">
-                <BookOpen size={20} />
-                <h3>{skill.name}</h3>
-              </div>
-              <span 
-                className="status-badge"
-                style={{ backgroundColor: getStatusColor(skill.status) }}
-              >
-                {skill.status.replace('-', ' ')}
-              </span>
-            </div>
-            
-            <div className="skill-details">
-              <div className="detail-item">
-                <span className="label">Platform:</span>
-                <span>{skill.platform}</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Type:</span>
-                <span>{skill.resource_type}</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Category:</span>
-                <span className="category-tag">{skill.category}</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-header">
-                <span>Progress</span>
-                <span style={{ color: getProgressColor(skill.progress) }}>
-                  {skill.progress}%
-                </span>
-              </div>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ 
-                    width: `${skill.progress}%`,
-                    backgroundColor: getProgressColor(skill.progress)
-                  }}
-                ></div>
-              </div>
-              <div className="progress-stats">
-                <div className="stat">
-                  <Target size={14} />
-                  <span>{skill.completed_subtopics}/{skill.total_subtopics} topics</span>
-                </div>
-                {skill.target_hours > 0 && (
-                  <div className="stat">
-                    <Clock size={14} />
-                    <span>{skill.target_hours}h target</span>
+          <Col lg={6} key={skill.id}>
+            <Card className="border-0 shadow-sm h-100">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div className="d-flex align-items-center">
+                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style={{width: '48px', height: '48px'}}>
+                      <i className="bi bi-journal-bookmark fs-5"></i>
+                    </div>
+                    <div>
+                      <Card.Title className="h5 mb-1">{skill.name}</Card.Title>
+                      <Badge bg={getStatusVariant(skill.status)} className="me-2">
+                        {skill.status.replace('-', ' ')}
+                      </Badge>
+                      <Badge bg="light" text="dark">{skill.category}</Badge>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            <div className="skill-actions">
-              <Link to={`/skills/${skill.id}`} className="btn-primary">
-                View Details
-              </Link>
-            </div>
-          </div>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="text-muted">Progress</span>
+                    <span className={`fw-bold text-${getProgressVariant(skill.progress)}`}>
+                      {skill.progress}%
+                    </span>
+                  </div>
+                  <div className="progress" style={{height: '8px'}}>
+                    <div 
+                      className={`progress-bar bg-${getProgressVariant(skill.progress)}`}
+                      style={{width: `${skill.progress}%`}}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-between text-muted small mb-3">
+                  <div>
+                    <i className="bi bi-check-circle me-1"></i>
+                    {skill.completed_subtopics}/{skill.total_subtopics} topics
+                  </div>
+                  {skill.target_hours > 0 && (
+                    <div>
+                      <i className="bi bi-clock me-1"></i>
+                      {skill.target_hours}h target
+                    </div>
+                  )}
+                </div>
+
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <small className="text-muted">
+                      <i className="bi bi-laptop me-1"></i>
+                      {skill.platform} • {skill.resource_type}
+                    </small>
+                  </div>
+                  <Button 
+                    as={Link}
+                    to={`/skills/${skill.id}`}
+                    variant="outline-primary"
+                    size="sm"
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
         ))}
-      </div>
+      </Row>
 
       {skills.length === 0 && (
-        <div className="empty-state">
-          <BookOpen size={64} className="empty-icon" />
-          <h3>No skills yet</h3>
-          <p>Start your learning journey by adding your first skill!</p>
-          <button 
-            className="btn-primary"
-            onClick={() => setShowAddSkill(true)}
-          >
-            <Plus size={20} />
-            Add Your First Skill
-          </button>
-        </div>
+        <Card className="border-0 shadow-sm text-center">
+          <Card.Body className="py-5">
+            <div className="text-muted mb-3">
+              <i className="bi bi-journal-bookmark display-1"></i>
+            </div>
+            <h3 className="h4 mb-3">No skills yet</h3>
+            <p className="text-muted mb-4">
+              Start your learning journey by adding your first skill!
+            </p>
+            <Button 
+              variant="primary"
+              onClick={() => setShowAddSkill(true)}
+            >
+              <i className="bi bi-plus-circle me-2"></i>
+              Add Your First Skill
+            </Button>
+          </Card.Body>
+        </Card>
       )}
 
       {showAddSkill && (
@@ -155,7 +165,7 @@ const SkillsList = () => {
           onSkillAdded={fetchSkills}
         />
       )}
-    </div>
+    </Container>
   );
 };
 

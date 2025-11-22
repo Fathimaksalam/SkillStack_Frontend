@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogIn, User, Lock } from 'lucide-react';
-import '../../styles/Auth.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -39,59 +38,83 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <LogIn size={32} className="auth-icon" />
-          <h2>Welcome Back</h2>
-          <p>Sign in to your SkillStack account</p>
-        </div>
-        
-        {error && <div className="error-message">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label>
-              <User size={16} />
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              placeholder="Enter your username"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>
-              <Lock size={16} />
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="Enter your password"
-            />
-          </div>
-          
-          <button type="submit" disabled={loading} className="auth-button">
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-        
-        <div className="auth-footer">
-          <p>
-            Don't have an account? <Link to="/register" className="auth-link">Sign up here</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    <Container fluid className="bg-light min-vh-100 d-flex align-items-center">
+      <Row className="w-100 justify-content-center">
+        <Col md={6} lg={4}>
+          <Card className="border-0 shadow">
+            <Card.Body className="p-5">
+              <div className="text-center mb-4">
+                <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style={{width: '60px', height: '60px'}}>
+                  <i className="bi bi-journal-bookmark fs-3"></i>
+                </div>
+                <h2 className="h4">Welcome Back</h2>
+                <p className="text-muted">Sign in to your SkillStack account</p>
+              </div>
+              
+              {error && <Alert variant="danger">{error}</Alert>}
+              
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <i className="bi bi-person me-2"></i>
+                    Username
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter your username"
+                  />
+                </Form.Group>
+                
+                <Form.Group className="mb-4">
+                  <Form.Label>
+                    <i className="bi bi-lock me-2"></i>
+                    Password
+                  </Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter your password"
+                  />
+                </Form.Group>
+                
+                <Button 
+                  variant="primary" 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-100 py-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Signing in...
+                    </>
+                  ) : (
+                    'Sign In'
+                  )}
+                </Button>
+              </Form>
+              
+              <div className="text-center mt-4">
+                <p className="text-muted">
+                  Don't have an account?{' '}
+                  <Link to="/register" className="text-decoration-none">
+                    Sign up here
+                  </Link>
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../config';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: false, // Important for CORS
 });
 
 // Add token to requests
@@ -12,6 +13,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['Content-Type'] = 'application/json';
     return config;
   },
   (error) => {
@@ -19,7 +21,7 @@ api.interceptors.request.use(
   }
 );
 
-// Handle token expiration
+// Handle responses and errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
