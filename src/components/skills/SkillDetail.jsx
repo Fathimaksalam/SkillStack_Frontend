@@ -195,9 +195,16 @@ const SkillDetail = () => {
                           </Button>
                         )}
 
-                        <Button size="sm" variant="outline-secondary" onClick={() => openSessionModal(st.id)}>
-                          Log Session
-                        </Button>
+                        {st.status !== 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline-secondary"
+                            onClick={() => openSessionModal(st.id)}
+                          >
+                            Log Session
+                          </Button>
+                        )}
+
                       </div>
                     </div>
                   </div>

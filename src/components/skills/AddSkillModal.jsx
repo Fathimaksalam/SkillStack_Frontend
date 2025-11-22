@@ -5,9 +5,9 @@ import skillService from '../../services/skillService';
 const AddSkillModal = ({ onClose, onSkillAdded }) => {
   const [formData, setFormData] = useState({
     name: '',
-    resource_type: 'course',
-    platform: 'Udemy',
-    target_hours: 0,
+    resource_type: '',
+    platform: '',
+    target_hours: '',
     description: '',
     subtopics: [{ title: '', description: '' }]
   });
@@ -109,7 +109,9 @@ const handleSubmit = async (e) => {
                   name="resource_type"
                   value={formData.resource_type}
                   onChange={handleChange}
+                  required
                 >
+                  <option value="">-- Select Resource Type --</option>
                   <option value="course">Course</option>
                   <option value="video">Video Series</option>
                   <option value="article">Article Series</option>
@@ -125,7 +127,9 @@ const handleSubmit = async (e) => {
                   name="platform"
                   value={formData.platform}
                   onChange={handleChange}
+                  required
                 >
+                  <option value="">-- Select Platform --</option>
                   <option value="Udemy">Udemy</option>
                   <option value="Coursera">Coursera</option>
                   <option value="YouTube">YouTube</option>
@@ -146,6 +150,7 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               min="0"
               step="0.5"
+              required
               placeholder="Estimated total learning hours"
             />
           </Form.Group>
@@ -190,7 +195,7 @@ const handleSubmit = async (e) => {
                     type="text"
                     value={subtopic.title}
                     onChange={(e) => handleSubtopicChange(index, 'title', e.target.value)}
-                    required
+    
                     placeholder="Topic title"
                   />
                 </Form.Group>
