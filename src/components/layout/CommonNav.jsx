@@ -1,57 +1,93 @@
+// src/components/common/CommonNav.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
 import "./CommonNav.css";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CommonNav = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+    const [menuOpen, setMenuOpen] = useState(false);
 
-  return (
-    <header className="common-nav">
-      {/* Left - Logo */}
-      <div className="nav-left" onClick={() => navigate("/dashboard")}>
-        <div className="nav-logo-icon">
-          <i className="bi bi-journal-bookmark-fill"></i>
-        </div>
-        <span className="nav-logo-text">SkillStack</span>
-      </div>
+    const handleLogout = () => {
+        logout();
+        setMenuOpen(false);
+        navigate("/login");
+    };
 
-      {/* Center Links */}
-      <nav className="nav-center">
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/skills">Skills</Link>
-        <Link to="/analytics">Analytics</Link>
-      </nav>
+    const closeMenu = () => setMenuOpen(false);
 
-      {/* Right Profile */}
-      <div className="nav-right">
-        <div
-          className="profile-box"
-          onClick={() => setShowMenu(!showMenu)}
-        >
-          <i className="bi bi-person-circle profile-icon"></i>
-          <span className="username">{user?.username}</span>
-          <i className="bi bi-chevron-down caret"></i>
-        </div>
+    return (
+        <>
+            {/* NAVBAR */}
+            <nav className="nav-container">
+                <div className="nav-left" onClick={() => navigate("/dashboard")}>
+                    <i className="bi bi-journal-bookmark-fill nav-logo-icon"></i>
+                    <span className="nav-logo-text">SkillStack</span>
+                </div>
 
-        {showMenu && (
-          <div className="profile-dropdown">
-            <button className="dropdown-item" onClick={handleLogout}>
-              <i className="bi bi-box-arrow-right me-2"></i>
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
-    </header>
-  );
+                {/* DESKTOP MENU */}
+                <div className="nav-links">
+                    <Link to="/dashboard">Dashboard</Link>
+                    <Link to="/skills">Skills</Link>
+                    <Link to="/analytics">Analytics</Link>
+                </div>
+
+                {/* PROFILE */}
+                <div className="nav-profile">
+                    {/* <div className="nav-profile-name">{user?.username}</div> */}
+                    <div className="nav-profile-name">
+                        <i className="bi bi-person-circle me-2"></i> {user?.username}
+                    </div>
+                    <div className="nav-profile-menu">
+                        <button onClick={handleLogout} className="logout-btn">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                {/* MOBILE HAMBURGER */}
+                <div className="nav-hamburger" onClick={() => setMenuOpen(true)}>
+                    <i className="bi bi-list"></i>
+                </div>
+            </nav>
+
+            {/* FULL SCREEN MOBILE MENU */}
+            {menuOpen && (
+                <div className="mobile-menu-overlay">
+                    <div className="mobile-menu-box">
+                        <div className="mobile-menu-header">
+                            <span className="mobile-menu-title">Menu</span>
+                            <i
+                                className="bi bi-x-lg mobile-close"
+                                onClick={closeMenu}
+                            ></i>
+                        </div>
+
+                        <div className="mobile-menu-links">
+                            <Link to="/dashboard" onClick={closeMenu}>
+                                Dashboard
+                            </Link>
+                            <Link to="/skills" onClick={closeMenu}>
+                                Skills
+                            </Link>
+                            <Link to="/analytics" onClick={closeMenu}>
+                                Analytics
+                            </Link>
+
+                            <div className="mobile-profile-section">
+                                <span className="mobile-username">{user?.username}</span>
+                                <button className="logout-btn-mobile" onClick={handleLogout}>
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
 };
 
 export default CommonNav;
