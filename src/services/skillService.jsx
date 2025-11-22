@@ -18,6 +18,9 @@ const skillService = {
 
   // Get all skills (if needed)
   getUserSkills: () => api.get('/skills'),
+
+  deleteSkill: (skillId) => api.delete(`/skills/${skillId}`),
+
 };
 
 export default skillService;
