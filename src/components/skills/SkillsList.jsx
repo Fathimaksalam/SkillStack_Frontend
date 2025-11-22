@@ -1,4 +1,3 @@
-// src/components/skills/SkillsList.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -20,11 +19,9 @@ const SkillsList = () => {
   const [showAddSkill, setShowAddSkill] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Delete popup states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [skillToDelete, setSkillToDelete] = useState(null);
 
-  // Toast states
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
@@ -55,11 +52,7 @@ const SkillsList = () => {
       setShowDeleteModal(false);
       setSkillToDelete(null);
       fetchSkills();
-
-      // refresh dashboard
       window.dispatchEvent(new Event("refreshDashboard"));
-
-      // show toast
       setShowToast(true);
     } catch (err) {
       console.error("Error deleting skill:", err);
@@ -83,6 +76,11 @@ const SkillsList = () => {
     return "danger";
   };
 
+  const trimNotes = (text) => {
+    if (!text) return "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  };
+
   if (loading) {
     return (
       <Container className="my-5 text-center">
@@ -94,8 +92,6 @@ const SkillsList = () => {
 
   return (
     <Container className="my-4">
-
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="h2 mb-1">My Skills</h1>
@@ -108,7 +104,6 @@ const SkillsList = () => {
         </Button>
       </div>
 
-      {/* Skill Cards */}
       <Row className="g-4">
         {skills.map((skill) => (
           <Col lg={6} key={skill.id}>
@@ -122,18 +117,20 @@ const SkillsList = () => {
                     >
                       <i className="bi bi-journal-bookmark fs-5"></i>
                     </div>
+
                     <div>
                       <Card.Title className="h5 mb-1">{skill.name}</Card.Title>
                       <Badge bg={getStatusVariant(skill.status)} className="me-2">
                         {skill.status.replace("-", " ")}
                       </Badge>
-                      <Badge bg="light" text="dark">
-                        {skill.category}
-                      </Badge>
+                      {skill.category && (
+                        <Badge bg="light" text="dark">
+                          {skill.category}
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
-                  {/* Delete Button */}
                   <Button
                     variant="outline-danger"
                     size="sm"
@@ -143,28 +140,32 @@ const SkillsList = () => {
                   </Button>
                 </div>
 
-                {/* Progress */}
                 <div className="my-3">
                   <div className="d-flex justify-content-between">
                     <span className="text-muted">Progress</span>
-                    <span className={`fw-bold text-${getProgressVariant(skill.progress)}`}>
+                    <span
+                      className={`fw-bold text-${getProgressVariant(skill.progress)}`}
+                    >
                       {skill.progress}%
                     </span>
                   </div>
 
                   <div className="progress" style={{ height: "8px" }}>
                     <div
-                      className={`progress-bar bg-${getProgressVariant(skill.progress)}`}
+                      className={`progress-bar bg-${getProgressVariant(
+                        skill.progress
+                      )}`}
                       style={{ width: `${skill.progress}%` }}
                     ></div>
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-between text-muted small mb-3">
+                <div className="d-flex justify-content-between text-muted small mb-2">
                   <span>
                     <i className="bi bi-check-circle me-1"></i>
                     {skill.completed_subtopics}/{skill.total_subtopics} topics
                   </span>
+
                   {skill.target_hours > 0 && (
                     <span>
                       <i className="bi bi-clock me-1"></i>
@@ -173,7 +174,19 @@ const SkillsList = () => {
                   )}
                 </div>
 
-                <div className="d-flex justify-content-between">
+                {skill.rating && (
+                  <div className="mt-2 small">
+                    <strong>Rating:</strong> {"★".repeat(skill.rating)}
+                  </div>
+                )}
+
+                {skill.course_notes && (
+                  <div className="small text-muted">
+                    Notes: {trimNotes(skill.course_notes)}
+                  </div>
+                )}
+
+                <div className="d-flex justify-content-between mt-3">
                   <small className="text-muted">
                     <i className="bi bi-laptop me-1"></i>
                     {skill.platform} • {skill.resource_type}
@@ -194,13 +207,13 @@ const SkillsList = () => {
         ))}
       </Row>
 
-
-      {/* EMPTY STATE */}
       {skills.length === 0 && (
         <Card className="border-0 shadow-sm text-center">
           <Card.Body className="py-5">
             <h3>No skills yet</h3>
-            <p className="text-muted">Start your learning journey by adding your first skill.</p>
+            <p className="text-muted">
+              Start your learning journey by adding your first skill.
+            </p>
             <Button variant="primary" onClick={() => setShowAddSkill(true)}>
               <i className="bi bi-plus-circle me-2"></i>
               Add Skill
@@ -209,7 +222,6 @@ const SkillsList = () => {
         </Card>
       )}
 
-      {/* Add Skill Modal */}
       {showAddSkill && (
         <AddSkillModal
           onClose={() => setShowAddSkill(false)}
@@ -217,17 +229,19 @@ const SkillsList = () => {
         />
       )}
 
-      {/* DELETE CONFIRM MODAL */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Delete Skill</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to delete
-          <strong> {skillToDelete?.name}</strong>?<br />
-          <span className="text-muted small">
-            This action cannot be undone.
-          </span>
+          Are you sure you want to delete{" "}
+          <strong>{skillToDelete?.name}</strong>?
+          <br />
+          <span className="text-muted small">This action cannot be undone.</span>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
@@ -239,7 +253,6 @@ const SkillsList = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* SUCCESS TOAST */}
       <ToastContainer position="bottom-end" className="p-3">
         <Toast
           bg="success"

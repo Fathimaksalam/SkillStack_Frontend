@@ -1,83 +1,80 @@
-import React, { useState } from 'react';
-import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
-import skillService from '../../services/skillService';
+// src/components/skills/AddSkillModal.jsx
+import React, { useState } from "react";
+import { Modal, Form, Button, Row, Col, Alert } from "react-bootstrap";
+import skillService from "../../services/skillService";
 
 const AddSkillModal = ({ onClose, onSkillAdded }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    resource_type: '',
-    platform: '',
-    target_hours: '',
-    description: '',
-    subtopics: [{ title: '', description: '' }]
+    name: "",
+    resource_type: "",
+    platform: "",
+    target_hours: "",
+    description: "",
+    subtopics: [{ title: "", description: "" }],
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubtopicChange = (index, field, value) => {
-    const newSubtopics = [...formData.subtopics];
-    newSubtopics[index][field] = value;
-    setFormData({ ...formData, subtopics: newSubtopics });
+    const updated = [...formData.subtopics];
+    updated[index][field] = value;
+    setFormData({ ...formData, subtopics: updated });
   };
 
   const addSubtopic = () => {
     setFormData({
       ...formData,
-      subtopics: [...formData.subtopics, { title: '', description: '' }]
+      subtopics: [...formData.subtopics, { title: "", description: "" }],
     });
   };
 
   const removeSubtopic = (index) => {
-    const newSubtopics = formData.subtopics.filter((_, i) => i !== index);
-    setFormData({ ...formData, subtopics: newSubtopics });
+    const filtered = formData.subtopics.filter((_, i) => i !== index);
+    setFormData({ ...formData, subtopics: filtered });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  try {
-    
-    const cleanTopics = formData.subtopics
-      .filter(st => st.title.trim() !== "")
-      .map(st => ({
-        title: st.title.trim(),
-        description: st.description.trim()
-      }));
+    try {
+      const cleanTopics = formData.subtopics
+        .filter((t) => t.title.trim() !== "")
+        .map((t) => ({
+          title: t.title.trim(),
+          description: t.description.trim(),
+        }));
 
-    const payload = {
-      name: formData.name,
-      resource_type: formData.resource_type,
-      platform: formData.platform,
-      target_hours: formData.target_hours,
-      description: formData.description,
-      user_subtopics: cleanTopics    
-    };
+      const payload = {
+        name: formData.name.trim(),
+        resource_type: formData.resource_type,
+        platform: formData.platform,
+        target_hours: formData.target_hours,
+        description: formData.description.trim(),
+        user_subtopics: cleanTopics,
+      };
 
-    await skillService.createSkill(payload);
-
-    onSkillAdded();
-    onClose();
-  } catch (error) {
-    console.error("Error creating skill:", error);
-    setError(error.response?.data?.error || "Error creating skill");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      await skillService.createSkill(payload);
+      onSkillAdded();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.error || "Error creating skill");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Modal show={true} onHide={onClose} size="lg" centered>
+    <Modal show onHide={onClose} size="lg" centered>
       <Modal.Header closeButton>
         <Modal.Title>
           <i className="bi bi-plus-circle me-2"></i>
@@ -104,7 +101,7 @@ const handleSubmit = async (e) => {
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group>
-                <Form.Label>Resource Type</Form.Label>
+                <Form.Label>Resource Type *</Form.Label>
                 <Form.Select
                   name="resource_type"
                   value={formData.resource_type}
@@ -120,9 +117,10 @@ const handleSubmit = async (e) => {
                 </Form.Select>
               </Form.Group>
             </Col>
+
             <Col md={6}>
               <Form.Group>
-                <Form.Label>Platform</Form.Label>
+                <Form.Label>Platform *</Form.Label>
                 <Form.Select
                   name="platform"
                   value={formData.platform}
@@ -142,7 +140,7 @@ const handleSubmit = async (e) => {
           </Row>
 
           <Form.Group className="mb-3">
-            <Form.Label>Target Hours</Form.Label>
+            <Form.Label>Target Hours *</Form.Label>
             <Form.Control
               type="number"
               name="target_hours"
@@ -156,14 +154,14 @@ const handleSubmit = async (e) => {
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Description</Form.Label>
+            <Form.Label>Description (optional)</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Brief description of what you want to learn..."
+              placeholder="Brief description..."
             />
           </Form.Group>
 
@@ -173,12 +171,12 @@ const handleSubmit = async (e) => {
               Learning Topics
             </h6>
             <p className="text-muted small mb-3">
-              Add the main topics you'll cover (AI will suggest more)
+              Add the main topics you'll cover (AI will add more automatically)
             </p>
-            
-            {formData.subtopics.map((subtopic, index) => (
+
+            {formData.subtopics.map((sub, index) => (
               <div key={index} className="border rounded p-3 mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-2">
+                <div className="d-flex justify-content-between mb-2">
                   <small className="fw-bold">Topic {index + 1}</small>
                   {formData.subtopics.length > 1 && (
                     <Button
@@ -190,31 +188,40 @@ const handleSubmit = async (e) => {
                     </Button>
                   )}
                 </div>
+
                 <Form.Group className="mb-2">
                   <Form.Control
                     type="text"
-                    value={subtopic.title}
-                    onChange={(e) => handleSubtopicChange(index, 'title', e.target.value)}
-    
+                    value={sub.title}
+                    onChange={(e) =>
+                      handleSubtopicChange(index, "title", e.target.value)
+                    }
                     placeholder="Topic title"
                   />
                 </Form.Group>
+
                 <Form.Group>
                   <Form.Control
                     as="textarea"
                     rows={2}
-                    value={subtopic.description}
-                    onChange={(e) => handleSubtopicChange(index, 'description', e.target.value)}
+                    value={sub.description}
+                    onChange={(e) =>
+                      handleSubtopicChange(
+                        index,
+                        "description",
+                        e.target.value
+                      )
+                    }
                     placeholder="Topic description (optional)"
                   />
                 </Form.Group>
               </div>
             ))}
-            
-            <Button 
-              variant="outline-primary" 
-              onClick={addSubtopic}
+
+            <Button
+              variant="outline-primary"
               className="w-100"
+              onClick={addSubtopic}
             >
               <i className="bi bi-plus-circle me-2"></i>
               Add Another Topic
@@ -226,14 +233,18 @@ const handleSubmit = async (e) => {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
+
           <Button variant="primary" type="submit" disabled={loading}>
             {loading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
                 Creating...
               </>
             ) : (
-              'Create Skill'
+              "Create Skill"
             )}
           </Button>
         </Modal.Footer>
