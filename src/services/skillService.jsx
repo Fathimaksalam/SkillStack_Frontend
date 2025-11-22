@@ -1,16 +1,23 @@
-import api from './api';
+// src/services/skillService.js
+import api from './api'; // adjust path if your api file is located elsewhere
 
-export const skillService = {
-  // Skills
-  getSkills: () => api.get('/skills'),
-  createSkill: (skillData) => api.post('/skills', skillData),
+const skillService = {
+  // Create a skill (AddSkillModal should send user_subtopics)
+  createSkill: (payload) => api.post('/skills', payload),
+
+  // Get skill detail
   getSkillDetail: (skillId) => api.get(`/skills/${skillId}`),
-  
-  // Subtopics
-  updateSubtopicStatus: (subtopicId, status) => 
+
+  // Update subtopic status (in-progress / completed)
+  // Uses a PUT to /skills/subtopics/:id/status with body { status: 'in-progress' }
+  updateSubtopicStatus: (subtopicId, status) =>
     api.put(`/skills/subtopics/${subtopicId}/status`, { status }),
-  
-  // Learning Sessions
-  addLearningSession: (sessionData) => 
-    api.post('/skills/learning-sessions', sessionData),
+
+  // Add learning session: { skill_id, subtopic_id (optional), duration_minutes, notes, session_date (optional) }
+  addLearningSession: (sessionPayload) => api.post('/sessions', sessionPayload),
+
+  // Get all skills (if needed)
+  getUserSkills: () => api.get('/skills'),
 };
+
+export default skillService;

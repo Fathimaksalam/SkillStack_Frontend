@@ -1,3 +1,4 @@
+// src/components/dashboard/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, Badge } from 'react-bootstrap';
@@ -12,12 +13,24 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // listen to global event to refresh dashboard when skill detail changes
+    const onRefresh = () => {
+      fetchDashboardData();
+    };
+    window.addEventListener('refreshDashboard', onRefresh);
+
+    return () => {
+      window.removeEventListener('refreshDashboard', onRefresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
+    setLoading(true);
     try {
       const response = await dashboardService.getDashboardData();
-      setDashboardData(response.data);
+      setDashboardData(response.data || response); // support both shapes
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -156,33 +169,37 @@ const Dashboard = () => {
               </div>
             </Card.Header>
             <Card.Body>
+              {skills_progress.length === 0 && <p className="text-muted">No skills yet. Add one to get started.</p>}
               {skills_progress.slice(0, 5).map(skill => (
                 <div key={skill.id} className="mb-3 p-3 border rounded">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <div>
                       <h6 className="mb-1">{skill.name}</h6>
-                      <Badge bg="light" text="dark" className="me-2">
-                        {skill.category}
-                      </Badge>
-                      <Badge bg={getStatusVariant(skill.status)}>
-                        {skill.status.replace('-', ' ')}
-                      </Badge>
+                      <div className="small text-muted">
+                        <span className="me-2">Category: {skill.category || 'Uncategorized'}</span>
+                        <span>Target: <strong>{skill.target_hours}h</strong></span>
+                      </div>
+                      <div className="small text-muted mt-1">
+                        Learned: <strong>{skill.learned_hours}h</strong>
+                      </div>
+                      <div className="small mt-1">
+                        <Badge bg={getStatusVariant(skill.status)} className="me-2">
+                          {skill.status.replace('-', ' ')}
+                        </Badge>
+                        <span className={`fw-bold text-${getProgressVariant(skill.progress)}`}>{skill.progress}%</span>
+                      </div>
                     </div>
-                    <span className={`text-${getProgressVariant(skill.progress)} fw-bold`}>
-                      {skill.progress}%
-                    </span>
+                    <div className="text-end">
+                      <Link to={`/skills/${skill.id}`} className="btn btn-sm btn-outline-primary">
+                        View Details →
+                      </Link>
+                    </div>
                   </div>
                   <div className="progress mb-2" style={{height: '8px'}}>
                     <div 
                       className={`progress-bar bg-${getProgressVariant(skill.progress)}`}
                       style={{width: `${skill.progress}%`}}
-                    ></div>
-                  </div>
-                  <div className="d-flex justify-content-between text-muted small">
-                    <span>{skill.completed_subtopics}/{skill.total_subtopics} topics</span>
-                    <Link to={`/skills/${skill.id}`} className="text-decoration-none">
-                      View Details →
-                    </Link>
+                    />
                   </div>
                 </div>
               ))}
@@ -198,6 +215,7 @@ const Dashboard = () => {
               <h5 className="mb-0">Recent Activities</h5>
             </Card.Header>
             <Card.Body>
+              {recent_activities.length === 0 && <p className="text-muted">No recent activity yet.</p>}
               {recent_activities.map(activity => (
                 <div key={activity.id} className="d-flex align-items-start mb-3">
                   <div className="flex-shrink-0">
@@ -227,6 +245,7 @@ const Dashboard = () => {
               <h5 className="mb-0">Skill Categories</h5>
             </Card.Header>
             <Card.Body>
+              {Object.entries(category_breakdown).length === 0 && <p className="text-muted">No categories yet.</p>}
               {Object.entries(category_breakdown).map(([category, count]) => (
                 <div key={category} className="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
                   <span className="fw-medium">{category}</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
-import { skillService } from '../../services/skillService';
+import skillService  from '../../services/skillService';
 import AddSkillModal from './AddSkillModal';
 
 const SkillsList = () => {
@@ -14,9 +14,10 @@ const SkillsList = () => {
   }, []);
 
   const fetchSkills = async () => {
+    setLoading(true);
     try {
-      const response = await skillService.getSkills();
-      setSkills(response.data);
+      const response = await skillService.getUserSkills();
+      setSkills(response.data || response);
     } catch (error) {
       console.error('Error fetching skills:', error);
     } finally {
@@ -92,8 +93,7 @@ const SkillsList = () => {
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <span className="text-muted">Progress</span>
                     <span className={`fw-bold text-${getProgressVariant(skill.progress)}`}>
-                      {skill.progress}%
-                    </span>
+                      {skill.progress}%</span>
                   </div>
                   <div className="progress" style={{height: '8px'}}>
                     <div 

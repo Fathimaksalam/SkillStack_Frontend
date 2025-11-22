@@ -1,68 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Badge, Alert } from 'react-bootstrap';
-import { skillService } from '../../services/skillService';
+import { Container, Row, Col, Card, Button, Badge, Form, Modal } from 'react-bootstrap';
+import skillService from '../../services/skillService';
 
 const SkillDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [sessionModal, setSessionModal] = useState({ open: false, subtopicId: null });
+  // no default minutes — user must enter value
+  const [sessionMinutes, setSessionMinutes] = useState('');
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchSkillDetail();
+    fetchSkill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const fetchSkillDetail = async () => {
+  const fetchSkill = async () => {
+    setLoading(true);
     try {
-      const response = await skillService.getSkillDetail(id);
-      setSkill(response.data);
-    } catch (error) {
-      console.error('Error fetching skill detail:', error);
+      const res = await skillService.getSkillDetail(id);
+      setSkill(res.data || res); // depending on API wrapper shape
+    } catch (err) {
+      console.error('Failed to load skill detail', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSubtopicStatus = async (subtopicId, newStatus) => {
-    setUpdating(true);
+  // dispatch a global event so Dashboard can refresh
+  const triggerDashboardRefresh = () => {
+    window.dispatchEvent(new Event('refreshDashboard'));
+  };
+
+  const handleUpdateSubtopic = async (subtopicId, newStatus) => {
+    setActionLoading(true);
     try {
+      // If user requests to mark complete, ensure that the subtopic has some hours logged and/or expected_hours set
+      if (newStatus === 'completed') {
+        const st = (skill?.subtopics || []).find(s => s.id === subtopicId);
+        if (!st) {
+          alert('Subtopic not found.');
+          return;
+        }
+        // block completion if expected_hours is zero OR hours_spent is zero
+        if ((Number(st.expected_hours) || 0) === 0 || (Number(st.hours_spent) || 0) === 0) {
+          alert('Cannot mark complete: please log time for this topic first (no default or zero hours).');
+          return;
+        }
+      }
+
       await skillService.updateSubtopicStatus(subtopicId, newStatus);
-      await fetchSkillDetail(); // Refresh data
-    } catch (error) {
-      console.error('Error updating subtopic:', error);
-      alert('Error updating subtopic status');
+      await fetchSkill();
+      triggerDashboardRefresh();
+    } catch (err) {
+      console.error('Failed to update subtopic status', err);
+      alert('Failed to update subtopic status. See console for details.');
     } finally {
-      setUpdating(false);
+      setActionLoading(false);
     }
   };
 
-  const getStatusVariant = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'in-progress': return 'primary';
-      default: return 'secondary';
-    }
+  const openSessionModal = (subtopicId) => {
+    setSessionModal({ open: true, subtopicId });
+    // clear value so user explicitly enters minutes
+    setSessionMinutes('');
+    setSessionNotes('');
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed': return 'bi-check-circle-fill text-success';
-      case 'in-progress': return 'bi-play-circle-fill text-primary';
-      default: return 'bi-circle text-secondary';
+  const closeSessionModal = () => {
+    setSessionModal({ open: false, subtopicId: null });
+  };
+
+  const handleAddSession = async () => {
+    if (!sessionModal.subtopicId) return;
+
+    // validate minutes — must be > 0
+    const minutes = Number(sessionMinutes);
+    if (!minutes || minutes <= 0 || Number.isNaN(minutes)) {
+      alert('Please enter a valid session duration (minutes) greater than 0.');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const payload = {
+        skill_id: parseInt(id, 10),
+        subtopic_id: sessionModal.subtopicId,
+        duration_minutes: minutes,
+        notes: sessionNotes || ''
+      };
+      await skillService.addLearningSession(payload);
+      // refresh local skill & dashboard
+      await fetchSkill();
+      triggerDashboardRefresh();
+      closeSessionModal();
+    } catch (err) {
+      console.error('Failed to add session', err);
+      alert('Failed to save session. See console for details.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <Container className="my-5">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Loading skill details...</p>
-        </div>
+      <Container className="my-5 text-center">
+        <div className="spinner-border text-primary" role="status" />
       </Container>
     );
   }
@@ -70,180 +118,145 @@ const SkillDetail = () => {
   if (!skill) {
     return (
       <Container className="my-5">
-        <Alert variant="danger">
-          <Alert.Heading>Skill Not Found</Alert.Heading>
-          <p>The skill you're looking for doesn't exist.</p>
-          <Button variant="primary" onClick={() => navigate('/skills')}>
-            Back to Skills
-          </Button>
-        </Alert>
+        <Card>
+          <Card.Body>
+            <h5>Skill not found</h5>
+            <p>The requested skill was not found or you do not have permission.</p>
+            <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+          </Card.Body>
+        </Card>
       </Container>
     );
   }
 
+  const { subtopics = [], target_hours = 0, learned_hours = 0 } = skill;
+
   return (
     <Container className="my-4">
-      {/* Header */}
-      <div className="d-flex align-items-center mb-4">
-        <Button 
-          variant="outline-secondary" 
-          onClick={() => navigate('/skills')}
-          className="me-3"
-        >
-          <i className="bi bi-arrow-left me-2"></i>
-          Back
-        </Button>
-        <div>
-          <h1 className="h2 mb-1">{skill.name}</h1>
-          <div className="d-flex gap-2">
-            <Badge bg="primary">{skill.platform}</Badge>
-            <Badge bg="info">{skill.resource_type}</Badge>
-            <Badge bg="light" text="dark">{skill.category}</Badge>
-            <Badge bg={getStatusVariant(skill.status)}>
-              {skill.status}
-            </Badge>
+      <Row className="mb-3 align-items-center">
+        <Col>
+          <h2 className="mb-0">{skill.name}</h2>
+          <div className="text-muted small">
+            {skill.category && <><strong>{skill.category}</strong> • </>}
+            {skill.platform && <>{skill.platform} • </>}
+            Status: <Badge bg={skill.status === 'completed' ? 'success' : (skill.status === 'in-progress' ? 'primary' : 'secondary')}>{skill.status}</Badge>
           </div>
-        </div>
-      </div>
+        </Col>
+        <Col className="text-end">
+          <div className="small text-muted">
+            Target: <strong>{target_hours}h</strong> • Learned: <strong>{learned_hours}h</strong>
+          </div>
+          <div className="small text-muted">Progress: <strong>{skill.progress ?? 0}%</strong></div>
+        </Col>
+      </Row>
 
-      {skill.description && (
-        <Card className="border-0 bg-light mb-4">
-          <Card.Body>
-            <p className="mb-0">{skill.description}</p>
-          </Card.Body>
-        </Card>
-      )}
-
-      <Row className="g-4 mb-4">
-        <Col md={4}>
-          <Card className="border-0 shadow-sm text-center">
+      <Row>
+        <Col lg={8}>
+          <Card className="mb-4">
+            <Card.Header className="bg-white border-0">
+              <h5 className="mb-0">Learning Path</h5>
+            </Card.Header>
             <Card.Body>
-              <div className="text-primary mb-2">
-                <i className="bi bi-graph-up display-6"></i>
-              </div>
-              <Card.Title className="h3">{skill.progress}%</Card.Title>
-              <Card.Text className="text-muted">Progress</Card.Text>
+              {subtopics.length === 0 && <p className="text-muted">No topics found.</p>}
+              {subtopics.map((st) => (
+                <div key={st.id} className="mb-3 p-3 border rounded">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 className="mb-1">{st.title}</h6>
+                      <div className="small text-muted">
+                        {st.description}
+                      </div>
+                      <div className="small text-muted mt-1">
+                        Expected: <strong>{st.expected_hours}h</strong> • Spent: <strong>{st.hours_spent}h</strong>
+                      </div>
+                    </div>
+
+                    <div className="text-end">
+                      <div className="mb-2">
+                        <Badge bg={st.status === 'completed' ? 'success' : (st.status === 'in-progress' ? 'primary' : 'secondary')}>
+                          {st.status.replace('-', ' ')}
+                        </Badge>
+                      </div>
+                      <div className="d-flex flex-column gap-2">
+                        {st.status !== 'in-progress' && st.status !== 'completed' && (
+                          <Button size="sm" variant="outline-primary" onClick={() => handleUpdateSubtopic(st.id, 'in-progress')} disabled={actionLoading}>
+                            Start
+                          </Button>
+                        )}
+                        {st.status !== 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline-success"
+                            onClick={() => handleUpdateSubtopic(st.id, 'completed')}
+                            disabled={actionLoading || (Number(st.expected_hours) === 0 || Number(st.hours_spent) === 0)}
+                            title={(Number(st.expected_hours) === 0 || Number(st.hours_spent) === 0) ? 'Log time first to allow completion' : ''}
+                          >
+                            Mark Complete
+                          </Button>
+                        )}
+
+                        <Button size="sm" variant="outline-secondary" onClick={() => openSessionModal(st.id)}>
+                          Log Session
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="border-0 shadow-sm text-center">
+
+        <Col lg={4}>
+          <Card className="mb-4">
             <Card.Body>
-              <div className="text-success mb-2">
-                <i className="bi bi-check-circle display-6"></i>
+              <h6>Skill Summary</h6>
+              <p className="mb-1"><strong>Target Hours:</strong> {target_hours}h</p>
+              <p className="mb-1"><strong>Learned:</strong> {learned_hours}h</p>
+              <p className="mb-1"><strong>Progress:</strong> {skill.progress ?? 0}%</p>
+              <div className="mt-3">
+                <Button variant="primary" onClick={() => navigate('/skills')}>Back to Skills</Button>
               </div>
-              <Card.Title className="h3">
-                {skill.subtopics.filter(st => st.status === 'completed').length}/
-                {skill.subtopics.length}
-              </Card.Title>
-              <Card.Text className="text-muted">Topics Completed</Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="border-0 shadow-sm text-center">
-            <Card.Body>
-              <div className="text-warning mb-2">
-                <i className="bi bi-clock display-6"></i>
-              </div>
-              <Card.Title className="h3">{skill.target_hours || 0}h</Card.Title>
-              <Card.Text className="text-muted">Target Hours</Card.Text>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Progress Bar */}
-      <Card className="border-0 shadow-sm mb-4">
-        <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span className="fw-bold">Overall Progress</span>
-            <span className="text-primary fw-bold">{skill.progress}% Complete</span>
-          </div>
-          <div className="progress" style={{height: '12px'}}>
-            <div 
-              className="progress-bar bg-primary" 
-              style={{width: `${skill.progress}%`}}
-            ></div>
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* Learning Path */}
-      <Card className="border-0 shadow-sm">
-        <Card.Header className="bg-white border-0">
-          <h5 className="mb-0">
-            <i className="bi bi-list-task me-2"></i>
-            Learning Path
-          </h5>
-        </Card.Header>
-        <Card.Body>
-          {skill.subtopics.map((subtopic, index) => (
-            <div key={subtopic.id} className="border rounded p-3 mb-3">
-              <div className="d-flex justify-content-between align-items-start">
-                <div className="d-flex align-items-start flex-grow-1">
-                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                       style={{width: '40px', height: '40px', flexShrink: 0}}>
-                    {index + 1}
-                  </div>
-                  <div className="flex-grow-1">
-                    <h6 className="mb-1">{subtopic.title}</h6>
-                    {subtopic.description && (
-                      <p className="text-muted mb-2 small">{subtopic.description}</p>
-                    )}
-                    {subtopic.hours_spent > 0 && (
-                      <div className="d-flex align-items-center text-muted small">
-                        <i className="bi bi-clock me-1"></i>
-                        <span>{subtopic.hours_spent.toFixed(1)} hours spent</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="d-flex flex-column align-items-end gap-2">
-                  <Badge bg={getStatusVariant(subtopic.status)} className="d-flex align-items-center">
-                    <i className={`bi ${getStatusIcon(subtopic.status)} me-1`}></i>
-                    {subtopic.status.replace('-', ' ')}
-                  </Badge>
-                  
-                  <div className="d-flex gap-1">
-                    {subtopic.status !== 'to-learn' && (
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={() => updateSubtopicStatus(subtopic.id, 'to-learn')}
-                        disabled={updating}
-                      >
-                        Reset
-                      </Button>
-                    )}
-                    {subtopic.status !== 'in-progress' && (
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => updateSubtopicStatus(subtopic.id, 'in-progress')}
-                        disabled={updating}
-                      >
-                        Start
-                      </Button>
-                    )}
-                    {subtopic.status !== 'completed' && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => updateSubtopicStatus(subtopic.id, 'completed')}
-                        disabled={updating}
-                      >
-                        Complete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Card.Body>
-      </Card>
+      {/* Session Modal */}
+      <Modal show={sessionModal.open} onHide={closeSessionModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Log Learning Session</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Duration (minutes)</Form.Label>
+              <Form.Control
+                type="number"
+                value={sessionMinutes}
+                onChange={(e) => setSessionMinutes(e.target.value)}
+                min={1}
+                placeholder="Enter minutes (e.g., 30)"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Notes (optional)</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeSessionModal}>Cancel</Button>
+          <Button variant="primary" onClick={handleAddSession} disabled={actionLoading}>
+            {actionLoading ? 'Saving...' : 'Save Session'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

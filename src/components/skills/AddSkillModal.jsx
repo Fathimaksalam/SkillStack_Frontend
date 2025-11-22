@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
-import { skillService } from '../../services/skillService';
+import skillService from '../../services/skillService';
 
 const AddSkillModal = ({ onClose, onSkillAdded }) => {
   const [formData, setFormData] = useState({
